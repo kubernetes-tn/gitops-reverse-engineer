@@ -52,6 +52,12 @@ jobs:
           echo ""
           echo "=== Events in test namespace ==="
           kubectl get events -n e2e-test-ns --sort-by='.lastTimestamp' || true
+          echo ""
+          echo "=== Events in webhook namespace ==="
+          kubectl get events -n gitops-reverse-engineer-system --sort-by='.lastTimestamp' || true
+          echo ""
+          echo "=== Jobs & pods in webhook namespace ==="
+          kubectl get jobs,pods -n gitops-reverse-engineer-system || true
 
       - name: Teardown
         if: always()

@@ -28,6 +28,7 @@ CLUSTER_NAME="${E2E_CLUSTER_NAME:-e2e-test}"
 WEBHOOK_NAMESPACE="gitops-reverse-engineer-system"
 IMAGE_NAME="gitops-reverse-engineer"
 IMAGE_TAG="e2e"
+CURL_IMAGE="${E2E_CURL_IMAGE:-curlimages/curl:8.5.0}"
 GITEA_LOCAL_PORT="${E2E_GITEA_LOCAL_PORT:-3000}"
 PORTFWD_PIDFILE="$SCRIPT_DIR/.portforward.pid"
 
@@ -205,6 +206,25 @@ else
   done
   ok "Image loaded into cluster nodes"
 fi
+
+# Pre-load the curl helper image used by health/metrics e2e tests.
+if docker image inspect "$CURL_IMAGE" >/dev/null 2>&1; then
+  info "Curl image '$CURL_IMAGE' found locally — skipping pull"
+else
+  info "Pulling curl helper image '$CURL_IMAGE'..."
+  docker pull --platform "linux/$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/')" "$CURL_IMAGE"
+fi
+if [[ "$SKIP_KIND" != "true" ]]; then
+  for node in $(kind get nodes --name "$KIND_CLUSTER_NAME"); do
+    info "Loading curl image into node $node..."
+    docker save "$CURL_IMAGE" | docker exec -i "$node" ctr -n k8s.io images import -
+  done
+else
+  for node in $(kubectl get nodes -o jsonpath='{.items[*].metadata.name}'); do
+    docker save "$CURL_IMAGE" | docker exec -i "$node" ctr -n k8s.io images import -
+  done
+fi
+ok "Curl helper image loaded"
 
 # ---------------------------------------------------------------------------
 # 5. Generate TLS certificates for the webhook

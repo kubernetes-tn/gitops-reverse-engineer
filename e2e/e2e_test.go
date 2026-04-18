@@ -474,7 +474,7 @@ func waitForGiteaFileGone(t *testing.T, path string, timeout time.Duration) {
 // Kubernetes helpers
 // ---------------------------------------------------------------------------
 
-// newCurlJob creates a Job that fetches a URL with wget (busybox-based, no TLS verify).
+// newCurlJob creates a Job that fetches a URL with curl (TLS-capable, no cert verify).
 func newCurlJob(name, ns, url string) *batchv1.Job {
 	return &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{Name: name, Namespace: ns},
@@ -484,8 +484,8 @@ func newCurlJob(name, ns, url string) *batchv1.Job {
 					RestartPolicy: corev1.RestartPolicyNever,
 					Containers: []corev1.Container{{
 						Name:    "curl",
-						Image:   "busybox:1.36",
-						Command: []string{"wget", "--no-check-certificate", "-qO-", url},
+						Image:   "curlimages/curl:8.5.0",
+						Command: []string{"curl", "-ks", url},
 					}},
 				},
 			},
