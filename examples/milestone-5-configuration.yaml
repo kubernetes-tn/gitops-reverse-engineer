@@ -1,0 +1,229 @@
+# Example Configuration for Milestone 5 Features
+# This file demonstrates the new user exclusion and namespace pattern matching capabilities
+
+## Example 1: Exclude System Namespaces
+## Use Case: Don't track changes in Kubernetes system namespaces
+#
+# watch:
+#   namespaces:
+#     excludePattern:
+#       - "kube-*"           # kube-system, kube-public, kube-node-lease
+#   excludeUsers:
+#     - "system:serviceaccount:kube-system:generic-garbage-collector"
+#     - "system:serviceaccount:kube-system:persistent-volume-binder"
+
+## Example 2: Track Only Production Namespaces
+## Use Case: GitOps audit for production environments only
+#
+# watch:
+#   namespaces:
+#     includePattern:
+#       - "prod-*"           # prod-app, prod-db, prod-api, etc.
+#   excludeUsers:
+#     - "system:serviceaccount:argocd:argocd-application-controller"
+
+## Example 3: Multi-Environment Cluster
+## Use Case: Track prod and staging, exclude dev and temporary
+#
+# watch:
+#   namespaces:
+#     includePattern:
+#       - "prod-*"           # prod-app, prod-db
+#       - "staging-*"        # staging-app, staging-db
+#     excludePattern:
+#       - "dev-*"            # dev-app, dev-db
+#       - "*-temp"           # any temporary namespaces
+#       - "kube-*"           # system namespaces
+#   excludeUsers:
+#     - "ci-deploy-bot"
+#     - "system:admin"
+
+## Example 4: Tenant-Based Filtering
+## Use Case: Multi-tenant cluster, track specific tenants
+#
+# watch:
+#   namespaces:
+#     includePattern:
+#       - "tenant-a-*"       # tenant-a-app, tenant-a-db
+#       - "tenant-b-*"       # tenant-b-app, tenant-b-db
+#     excludePattern:
+#       - "*-playground"     # exclude playground namespaces
+#   excludeUsers:
+#     - "system:serviceaccount:kube-system:generic-garbage-collector"
+
+## Example 5: Specific Namespaces + Patterns
+## Use Case: Mix of exact names and patterns
+#
+# watch:
+#   namespaces:
+#     include:
+#       - "default"          # Exact namespace name
+#       - "monitoring"       # Exact namespace name
+#     includePattern:
+#       - "app-*"            # All app namespaces
+#     exclude:
+#       - "test"             # Exact exclude
+#     excludePattern:
+#       - "kube-*"           # System namespaces
+#       - "*-temp"           # Temporary namespaces
+
+## Example 6: GitOps-Managed Cluster
+## Use Case: Cluster managed by ArgoCD/Flux, avoid recursive commits
+#
+# watch:
+#   namespaces:
+#     excludePattern:
+#       - "kube-*"           # System namespaces
+#       - "argocd"           # ArgoCD namespace
+#       - "flux-*"           # Flux namespaces
+#   excludeUsers:
+#     - "system:serviceaccount:argocd:argocd-application-controller"
+#     - "system:serviceaccount:argocd:argocd-server"
+#     - "system:serviceaccount:flux-system:helm-controller"
+#     - "system:serviceaccount:flux-system:source-controller"
+#     - "system:serviceaccount:flux-system:kustomize-controller"
+
+## Example 7: Application-Specific Tracking
+## Use Case: Only track specific application namespaces
+#
+# watch:
+#   namespaces:
+#     includePattern:
+#       - "myapp-*"          # myapp-frontend, myapp-backend, myapp-db
+#   resources:
+#     include:
+#       - Deployment
+#       - StatefulSet
+#       - Service
+#       - ConfigMap
+#       - Secret
+#   excludeUsers:
+#     - "system:serviceaccount:kube-system:generic-garbage-collector"
+
+## Example 8: Everything Except Temporary and System
+## Use Case: Track all user namespaces, exclude system and temporary
+#
+# watch:
+#   namespaces:
+#     # Empty include = watch all (except excluded)
+#     excludePattern:
+#       - "kube-*"           # System namespaces
+#       - "*-temp"           # Temporary namespaces
+#       - "*-test"           # Test namespaces
+#   excludeUsers:
+#     - "system:serviceaccount:kube-system:generic-garbage-collector"
+#     - "system:serviceaccount:kube-system:persistent-volume-binder"
+
+## Example 9: Advanced Pattern Matching
+## Use Case: Complex pattern requirements
+#
+# watch:
+#   namespaces:
+#     includePattern:
+#       - "app-[0-9]"        # app-1, app-2, ... app-9 (single digit)
+#       - "service-?"        # service-a, service-1 (any single char)
+#       - "[pt]rod-*"        # prod-*, trod-*
+#     excludePattern:
+#       - "*-old"            # Exclude archived namespaces
+
+## Example 10: Complete Production Configuration
+## Use Case: Full production setup with all features
+#
+# global:
+#   imageRegistry: "your-registry.com"
+# 
+# image:
+#   repository: gitops-reverse-engineer
+#   tag: milestone-5
+# 
+# git:
+#   repoUrl: "https://git.example.com/sre/cluster-git-reversed.git"
+#   existingSecret: "git-token"
+#   clusterName: "production"
+# 
+# watch:
+#   clusterWideResources: false
+#   
+#   namespaces:
+#     # Exact namespace names
+#     include: []
+#     exclude: ["default"]
+#     
+#     # Pattern-based filtering
+#     includePattern:
+#       - "prod-*"
+#       - "platform-*"
+#     excludePattern:
+#       - "kube-*"
+#       - "*-temp"
+#       - "*-test"
+#       - "*-dev"
+#     
+#     # Label-based filtering
+#     labelSelector:
+#       environment: "production"
+#   
+#   resources:
+#     include:
+#       - Deployment
+#       - StatefulSet
+#       - DaemonSet
+#       - Service
+#       - ConfigMap
+#       - Secret
+#       - PersistentVolumeClaim
+#       - Ingress
+#     exclude: []
+#   
+#   # Exclude system and automation accounts
+#   excludeUsers:
+#     - "system:serviceaccount:kube-system:generic-garbage-collector"
+#     - "system:serviceaccount:kube-system:persistent-volume-binder"
+#     - "system:serviceaccount:argocd:argocd-application-controller"
+#     - "system:serviceaccount:argocd:argocd-server"
+#     - "ci-deploy-bot"
+#     - "automation@example.com"
+# 
+# metrics:
+#   enabled: true
+#   serviceMonitor:
+#     enabled: true
+#     interval: 30s
+# 
+# prometheusRule:
+#   enabled: true
+# 
+# resources:
+#   limits:
+#     cpu: 500m
+#     memory: 512Mi
+#   requests:
+#     cpu: 100m
+#     memory: 256Mi
+
+---
+# Pattern Matching Reference
+# 
+# Wildcards:
+#   *       - Matches any sequence of characters
+#   ?       - Matches any single character
+#   [abc]   - Matches any character in the brackets
+#   [a-z]   - Matches any character in the range
+#   [!abc]  - Matches any character NOT in the brackets
+#
+# Examples:
+#   "kube-*"      → kube-system, kube-public, kube-node-lease
+#   "*-temp"      → dev-temp, staging-temp, test-temp
+#   "app-?"       → app-a, app-1, app-x (NOT app-12)
+#   "app-[0-9]"   → app-0, app-1, ... app-9
+#   "app-[a-z]"   → app-a, app-b, ... app-z
+#   "[pt]rod-*"   → prod-app, trod-db (NOT dev-app)
+#   "*-[!0-9]"    → app-a, app-x (NOT app-1)
+#
+# Common Patterns:
+#   - Exclude all system namespaces: "kube-*"
+#   - Exclude temporary namespaces: "*-temp"
+#   - Include production: "prod-*"
+#   - Include specific environment: "staging-*"
+#   - Numbered namespaces: "app-[0-9]*"
+#   - Letter suffixes: "service-[a-z]"

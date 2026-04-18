@@ -1,0 +1,53 @@
+# Development cluster-specific values
+# This file demonstrates per-cluster configuration overrides
+# Usage: make deploy CLUSTER_NAME=dev
+
+## Dev-specific Git repository
+git:
+  repoUrl: "https://git.example.com/sre/cluster-gitops-reversed.git"
+  existingSecret: "git-token"
+  clusterName: "dev"
+
+## Dev namespace filtering (more permissive)
+watch:
+  clusterWideResources: false  # Don't watch cluster-wide resources in dev
+  namespaces:
+    include: []
+    exclude:
+      - "kube-system"
+    excludePattern:
+      - "kube-*"
+    labelSelector: {}
+
+## Dev resource limits (minimal)
+resources:
+  limits:
+    cpu: 250m
+    memory: 256Mi
+  requests:
+    cpu: 50m
+    memory: 128Mi
+
+## Dev monitoring (optional)
+metrics:
+  enabled: true
+  serviceMonitor:
+    enabled: false  # No Prometheus Operator in dev
+  
+prometheusRule:
+  enabled: false
+
+## Dev - single replica
+replicaCount: 1
+
+## Dev webhook policy (Ignore failures in dev)
+webhook:
+  failurePolicy: Ignore
+  timeoutSeconds: 5
+
+## Dev host aliases for local development
+# hostAliases:
+#   - ip: "127.0.0.1"
+#     hostnames:
+#       - "git.example.com"
+#       - "git.dev.local"

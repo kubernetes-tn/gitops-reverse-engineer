@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gitops-reverse-engineer
+  namespace: gitops-reverse-engineer-system
+  labels:
+    app: gitops-reverse-engineer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gitops-reverse-engineer
+  template:
+    metadata:
+      labels:
+        app: gitops-reverse-engineer
+    spec:
+      containers:
+      - name: admission-controller
+        image: ghcr.io/kubernetes-tn/gitops-reverse-engineer:latest  
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8443
+          name: webhook
+          protocol: TCP
+        env:
+        - name: GIT_REPO_URL
+          value: "https://git.example.com/sre/cluster-git-reversed.git"
+        - name: GIT_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: git-token
+              key: token
+        - name: GIT_PROVIDER
+          value: "gitea"
+        - name: CLUSTER_NAME
+          value: "platform"
+        volumeMounts:
+        - name: webhook-certs
+          mountPath: /etc/webhook/certs
+          readOnly: true
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8443
+            scheme: HTTPS
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8443
+            scheme: HTTPS
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+      volumes:
+      - name: webhook-certs
+        secret:
+          secretName: gitops-reverse-engineer-certs

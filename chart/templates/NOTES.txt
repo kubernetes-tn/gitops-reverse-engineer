@@ -1,0 +1,46 @@
+NOTES:
+Thank you for installing {{ .Chart.Name }}.
+
+Your release is named {{ .Release.Name }}.
+
+To learn more about the release, try:
+
+  $ helm status {{ .Release.Name }} -n {{ include "gitops-reverse-engineer.namespace" . }}
+  $ helm get all {{ .Release.Name }} -n {{ include "gitops-reverse-engineer.namespace" . }}
+
+GitOps Reversed Admission Controller has been deployed successfully!
+
+Configuration:
+- Cluster Name: {{ .Values.git.clusterName }}
+- Git Repository: {{ .Values.git.repoUrl }}
+- Watch Cluster-Wide Resources: {{ .Values.watch.clusterWideResources }}
+- Metrics Enabled: {{ .Values.metrics.enabled }}
+
+{{- if .Values.watch.namespaces.include }}
+- Watching Namespaces (include): {{ .Values.watch.namespaces.include | join ", " }}
+{{- end }}
+{{- if .Values.watch.namespaces.exclude }}
+- Excluding Namespaces: {{ .Values.watch.namespaces.exclude | join ", " }}
+{{- end }}
+
+Resources being watched:
+{{- range .Values.watch.resources.include }}
+  - {{ . }}
+{{- end }}
+
+To check the logs:
+  kubectl logs -n {{ include "gitops-reverse-engineer.namespace" . }} -l app.kubernetes.io/name={{ include "gitops-reverse-engineer.name" . }} -f
+
+To check the health:
+  kubectl get pods -n {{ include "gitops-reverse-engineer.namespace" . }} -l app.kubernetes.io/name={{ include "gitops-reverse-engineer.name" . }}
+
+{{- if .Values.metrics.enabled }}
+
+Metrics endpoint: {{ .Values.metrics.path }}
+{{- if .Values.metrics.serviceMonitor.enabled }}
+ServiceMonitor has been created for Prometheus Operator.
+{{- end }}
+{{- if .Values.prometheusRule.enabled }}
+PrometheusRule has been created with alerting rules.
+{{- end }}
+{{- end }}

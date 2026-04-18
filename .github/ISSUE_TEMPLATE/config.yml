@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Question / Discussion
+    url: https://github.com/kubernetes-tn/gitops-reverse-engineer/discussions
+    about: Ask questions and discuss ideas in GitHub Discussions

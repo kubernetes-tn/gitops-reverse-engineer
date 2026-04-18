@@ -1,0 +1,109 @@
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: {{ include "gitops-reverse-engineer.fullname" . }}-webhook
+  labels:
+    {{- include "gitops-reverse-engineer.labels" . | nindent 4 }}
+webhooks:
+  - name: validate.{{ include "gitops-reverse-engineer.fullname" . }}.com
+    clientConfig:
+      service:
+        name: {{ include "gitops-reverse-engineer.fullname" . }}
+        namespace: {{ include "gitops-reverse-engineer.namespace" . }}
+        path: "/validate"
+      caBundle: {{ .Values.tls.crt }}
+    rules:
+      {{- $includedResources := .Values.watch.resources.include }}
+      {{- $excludedResources := .Values.watch.resources.exclude }}
+      {{- if $includedResources }}
+      # Namespaced resources
+      {{- if and (has "ConfigMap" $includedResources) (not (has "ConfigMap" $excludedResources)) }}
+      - operations: ["CREATE", "UPDATE", "DELETE"]
+        apiGroups: [""]
+        apiVersions: ["v1"]
+        resources: ["configmaps"]
+      {{- end }}
+      {{- if and (has "Secret" $includedResources) (not (has "Secret" $excludedResources)) }}
+      - operations: ["CREATE", "UPDATE", "DELETE"]
+        apiGroups: [""]
+        apiVersions: ["v1"]
+        resources: ["secrets"]
+      {{- end }}
+      {{- if and (has "Service" $includedResources) (not (has "Service" $excludedResources)) }}
+      - operations: ["CREATE", "UPDATE", "DELETE"]
+        apiGroups: [""]
+        apiVersions: ["v1"]
+        resources: ["services"]
+      {{- end }}
+      {{- if and (has "PersistentVolumeClaim" $includedResources) (not (has "PersistentVolumeClaim" $excludedResources)) }}
+      - operations: ["CREATE", "UPDATE", "DELETE"]
+        apiGroups: [""]
+        apiVersions: ["v1"]
+        resources: ["persistentvolumeclaims"]
+      {{- end }}
+      {{- if and (has "Deployment" $includedResources) (not (has "Deployment" $excludedResources)) }}
+      - operations: ["CREATE", "UPDATE", "DELETE"]
+        apiGroups: ["apps"]
+        apiVersions: ["v1"]
+        resources: ["deployments"]
+      {{- end }}
+      {{- if and (has "StatefulSet" $includedResources) (not (has "StatefulSet" $excludedResources)) }}
+      - operations: ["CREATE", "UPDATE", "DELETE"]
+        apiGroups: ["apps"]
+        apiVersions: ["v1"]
+        resources: ["statefulsets"]
+      {{- end }}
+      {{- if and (has "DaemonSet" $includedResources) (not (has "DaemonSet" $excludedResources)) }}
+      - operations: ["CREATE", "UPDATE", "DELETE"]
+        apiGroups: ["apps"]
+        apiVersions: ["v1"]
+        resources: ["daemonsets"]
+      {{- end }}
+      {{- if and (has "Ingress" $includedResources) (not (has "Ingress" $excludedResources)) }}
+      - operations: ["CREATE", "UPDATE", "DELETE"]
+        apiGroups: ["networking.k8s.io"]
+        apiVersions: ["v1"]
+        resources: ["ingresses"]
+      {{- end }}
+      {{- if .Values.watch.clusterWideResources }}
+      # Cluster-wide resources
+      {{- if and (has "Namespace" $includedResources) (not (has "Namespace" $excludedResources)) }}
+      - operations: ["CREATE", "UPDATE", "DELETE"]
+        apiGroups: [""]
+        apiVersions: ["v1"]
+        resources: ["namespaces"]
+      {{- end }}
+      {{- if and (has "PersistentVolume" $includedResources) (not (has "PersistentVolume" $excludedResources)) }}
+      - operations: ["CREATE", "UPDATE", "DELETE"]
+        apiGroups: [""]
+        apiVersions: ["v1"]
+        resources: ["persistentvolumes"]
+      {{- end }}
+      {{- end }}
+      {{- else }}
+      # Default: watch all common resources
+      - operations: ["CREATE", "UPDATE", "DELETE"]
+        apiGroups: [""]
+        apiVersions: ["v1"]
+        resources: ["configmaps", "secrets", "services", "persistentvolumeclaims"]
+      - operations: ["CREATE", "UPDATE", "DELETE"]
+        apiGroups: ["apps"]
+        apiVersions: ["v1"]
+        resources: ["deployments", "statefulsets", "daemonsets"]
+      - operations: ["CREATE", "UPDATE", "DELETE"]
+        apiGroups: ["networking.k8s.io"]
+        apiVersions: ["v1"]
+        resources: ["ingresses"]
+      {{- end }}
+    admissionReviewVersions: ["v1", "v1beta1"]
+    sideEffects: None
+    timeoutSeconds: {{ .Values.webhook.timeoutSeconds }}
+    failurePolicy: {{ .Values.webhook.failurePolicy }}
+    {{- with .Values.webhook.namespaceSelector }}
+    namespaceSelector:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .Values.webhook.objectSelector }}
+    objectSelector:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}

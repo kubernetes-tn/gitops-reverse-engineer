@@ -1,0 +1,35 @@
+{{- if .Values.rbac.create -}}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "gitops-reverse-engineer.fullname" . }}
+  labels:
+    {{- include "gitops-reverse-engineer.labels" . | nindent 4 }}
+rules:
+  - apiGroups: [""]
+    resources: ["*"]
+    verbs: ["get", "list", "watch"]
+  {{- if .Values.watch.clusterWideResources }}
+  - apiGroups: [""]
+    resources: ["namespaces", "persistentvolumes"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["storage.k8s.io"]
+    resources: ["storageclasses"]
+    verbs: ["get", "list", "watch"]
+  {{- end }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "gitops-reverse-engineer.fullname" . }}
+  labels:
+    {{- include "gitops-reverse-engineer.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "gitops-reverse-engineer.fullname" . }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "gitops-reverse-engineer.serviceAccountName" . }}
+    namespace: {{ include "gitops-reverse-engineer.namespace" . }}
+{{- end }}

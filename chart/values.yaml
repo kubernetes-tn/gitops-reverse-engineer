@@ -1,0 +1,407 @@
+## @section Global parameters
+## Global Docker image parameters
+## Please, note that this will override the image parameters, including dependencies, configured to use the global value
+## Current available global Docker image parameters: imageRegistry, imagePullSecrets and storageClass
+##
+
+## @param global.imageRegistry Global Docker image registry
+## @param global.imagePullSecrets Global Docker registry secret names as an array
+##
+global:
+  imageRegistry: ""
+  ## E.g.
+  ## imagePullSecrets:
+  ##   - myRegistryKeySecretName
+  ##
+  imagePullSecrets: []
+
+## @section Common parameters
+##
+
+## @param nameOverride String to partially override common.names.fullname
+##
+nameOverride: ""
+
+## @param fullnameOverride String to fully override common.names.fullname
+##
+fullnameOverride: ""
+
+## @param namespaceOverride String to fully override common.names.namespace
+##
+namespaceOverride: ""
+
+## @param commonLabels Labels to add to all deployed objects
+##
+commonLabels: {}
+
+## @param commonAnnotations Annotations to add to all deployed objects
+##
+commonAnnotations: {}
+
+## @section Admission Controller Image Parameters
+##
+
+## Gitops Reversed Admission Controller image
+## @param image.registry Admission controller image registry
+## @param image.repository Admission controller image repository
+## @param image.tag Admission controller image tag (immutable tags are recommended)
+## @param image.digest Admission controller image digest in the way sha256:aa.... Please note this parameter, if set, will override the tag
+## @param image.pullPolicy Admission controller image pull policy
+## @param image.pullSecrets Admission controller image pull secrets
+##
+image:
+  registry: ghcr.io/kubernetes-tn
+  repository: gitops-reverse-engineer
+  tag: gitops-1
+  digest: ""
+  ## Specify a imagePullPolicy
+  ## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
+  ## ref: https://kubernetes.io/docs/concepts/containers/images/#pre-pulled-images
+  ##
+  pullPolicy: IfNotPresent
+  ## Optionally specify an array of imagePullSecrets.
+  ## Secrets must be manually created in the namespace.
+  ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+  ## e.g:
+  ## pullSecrets:
+  ##   - myRegistryKeySecretName
+  ##
+  pullSecrets: []
+
+## @section Admission Controller Deployment Parameters
+##
+
+## @param replicaCount Number of Admission controller replicas to deploy
+##
+replicaCount: 1
+
+## @param resources.limits The resources limits for the Admission controller containers
+## @param resources.requests The requested resources for the Admission controller containers
+##
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 256Mi
+
+## Configure Pods Security Context
+## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod
+## @param podSecurityContext.enabled Enabled Admission controller pods' Security Context
+## @param podSecurityContext.fsGroup Set Admission controller pod's Security Context fsGroup
+##
+podSecurityContext:
+  enabled: false
+  fsGroup: 1001
+
+## Configure Container Security Context
+## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container
+## @param containerSecurityContext.enabled Enabled containers' Security Context
+## @param containerSecurityContext.runAsUser Set containers' Security Context runAsUser
+## @param containerSecurityContext.runAsNonRoot Set containers' Security Context runAsNonRoot
+## @param containerSecurityContext.privileged Set container's Security Context privileged
+## @param containerSecurityContext.readOnlyRootFilesystem Set container's Security Context readOnlyRootFilesystem
+## @param containerSecurityContext.allowPrivilegeEscalation Set container's Security Context allowPrivilegeEscalation
+## @param containerSecurityContext.capabilities.drop List of capabilities to be dropped
+##
+containerSecurityContext:
+  enabled: false
+  runAsUser: 1001
+  runAsNonRoot: true
+  privileged: false
+  readOnlyRootFilesystem: false
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+
+## @section Git Configuration
+##
+
+## Git repository configuration
+## @param git.provider Git hosting provider: "gitea", "github", or "gitlab"
+## @param git.repoUrl Git repository URL for syncing resources
+## @param git.token Git authentication token (will be read from secret if existingSecret is provided)
+## @param git.existingSecret Name of existing secret containing git token (key: token)
+## @param git.clusterName Name of the cluster (used in git path structure)
+##
+git:
+  provider: "gitea"
+  repoUrl: "https://git.example.com/sre/cluster-git-reversed.git"
+  token: ""
+  existingSecret: "git-token"
+  clusterName: "platform"
+
+## @section Watch Configuration
+##
+
+## Watch configuration for resources and namespaces
+## @param watch.clusterWideResources Enable watching cluster-scoped resources (Namespace, PV, etc.)
+## @param watch.namespaces.include List of namespace names to watch (empty = all)
+## @param watch.namespaces.exclude List of namespace names to exclude from watching
+## @param watch.namespaces.includePattern List of glob patterns for namespaces to include (e.g., "prod-*")
+## @param watch.namespaces.excludePattern List of glob patterns for namespaces to exclude (e.g., "kube-*")
+## @param watch.namespaces.labelSelector Label selector for namespaces to watch
+## @param watch.resources.include List of resource kinds to watch (empty = default list)
+## @param watch.resources.exclude List of resource kinds to exclude from watching
+## @param watch.excludeUsers List of users/serviceaccounts to exclude from watching
+##
+watch:
+  clusterWideResources: false
+  namespaces:
+    include: []
+    exclude: []
+    includePattern: []
+    excludePattern:
+      - "kube-*"
+    labelSelector: {}
+  resources:
+    ## Default resources to watch
+    include:
+      # Core Workloads
+      - Deployment
+      - StatefulSet
+      - DaemonSet
+      - Job
+      - CronJob
+      # Services & Networking
+      - Service
+      - Ingress
+      - NetworkPolicy
+      # Gateway API Resources
+      - HTTPRoute
+      - Gateway
+      - GatewayClass
+      - TCPRoute
+      - TLSRoute
+      - UDPRoute
+      # OpenShift Routes
+      - Route
+      # Configuration & Storage
+      - ConfigMap
+      - Secret
+      - PersistentVolumeClaim
+      - PersistentVolume
+      # ArgoCD Resources
+      - Application
+      - ApplicationSet
+      - AppProject
+      # RBAC
+      - Role
+      - RoleBinding
+      - ClusterRole
+      - ClusterRoleBinding
+      - ServiceAccount
+      # Resource Quotas & Limits
+      - ResourceQuota
+      - LimitRange
+      # HorizontalPodAutoscaler
+      - HorizontalPodAutoscaler
+    exclude: []
+  excludeUsers:
+    # Exclude Kubernetes system controllers
+    - "system:serviceaccount:kube-system:generic-garbage-collector"
+    - "system:serviceaccount:kube-system:persistent-volume-binder"
+    # Exclude GitOps controllers to prevent recursive changes
+    - "system:serviceaccount:argocd:argocd-application-controller"
+    - "system:serviceaccount:flux-system:flux-controller"
+    # Add your own exclusions below (e.g., operators, CI/CD bots)
+    # - "system:serviceaccount:openshift-gitops:openshift-gitops-argocd-server"
+    # - "system:admin"
+## @section Service Configuration
+##
+
+## Service configuration
+## @param service.type Service type
+## @param service.port Service HTTP port
+## @param service.annotations Additional custom annotations for Service
+##
+service:
+  type: ClusterIP
+  port: 443
+  annotations: {}
+
+## @section Webhook Configuration
+##
+
+## Webhook configuration
+## @param webhook.failurePolicy Failure policy for the webhook (Fail or Ignore)
+## @param webhook.timeoutSeconds Timeout for webhook calls in seconds
+## @param webhook.namespaceSelector Namespace selector for webhook
+## @param webhook.objectSelector Object selector for webhook
+##
+webhook:
+  failurePolicy: Ignore
+  timeoutSeconds: 10
+  namespaceSelector: {}
+  objectSelector: {}
+
+## @section TLS Configuration
+##
+
+## TLS certificate configuration
+## @param tls.existingSecret Name of existing secret containing TLS certificate (keys: tls.crt, tls.key)
+## @param tls.crt TLS certificate (if existingSecret is not provided)
+## @param tls.key TLS private key (if existingSecret is not provided)
+##
+tls:
+  existingSecret: "gitops-reverse-engineer-certs"
+  crt: ""
+  key: ""
+
+## @section Metrics parameters
+##
+
+## Prometheus metrics
+## @param metrics.enabled Enable Prometheus metrics
+## @param metrics.port Metrics port
+## @param metrics.path Metrics path
+## @param metrics.serviceMonitor.enabled Create ServiceMonitor Resource for scraping metrics using Prometheus Operator
+## @param metrics.serviceMonitor.namespace Namespace for the ServiceMonitor Resource (defaults to the Release Namespace)
+## @param metrics.serviceMonitor.interval Interval at which metrics should be scraped
+## @param metrics.serviceMonitor.scrapeTimeout Timeout after which the scrape is ended
+## @param metrics.serviceMonitor.relabelings RelabelConfigs to apply to samples before scraping
+## @param metrics.serviceMonitor.metricRelabelings MetricRelabelConfigs to apply to samples before ingestion
+## @param metrics.serviceMonitor.selector Prometheus instance selector labels
+## @param metrics.serviceMonitor.labels Additional labels for ServiceMonitor
+## @param metrics.serviceMonitor.honorLabels honorLabels chooses the metric's labels on collisions with target labels
+##
+metrics:
+  enabled: true
+  port: 8443
+  path: /metrics
+  serviceMonitor:
+    enabled: true
+    namespace: ""
+    interval: 30s
+    scrapeTimeout: 10s
+    relabelings: []
+    metricRelabelings: []
+    selector: {}
+    labels: {}
+    honorLabels: false
+
+## @section Prometheus Rules parameters
+##
+
+## Prometheus rules configuration
+## @param prometheusRule.enabled Create PrometheusRule Resource for scraping metrics using Prometheus Operator
+## @param prometheusRule.namespace Namespace for the PrometheusRule Resource (defaults to the Release Namespace)
+## @param prometheusRule.labels Additional labels for PrometheusRule
+## @param prometheusRule.groups Prometheus rules groups
+##
+prometheusRule:
+  enabled: true
+  namespace: ""
+  labels: {}
+  groups:
+    - name: gitops-reverse-engineer
+      rules:
+        - alert: GitOpsAdmissionGitSyncFailure
+          expr: gitops_admission_git_sync_failures_total > 0
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "GitOps Admission Controller failing to sync to Git"
+            description: "The GitOps Admission Controller has failed to sync resources to Git repository. Pending operations: {{ $value }}"
+
+## @section Health Check Configuration
+##
+
+## Liveness and readiness probes
+## @param livenessProbe.enabled Enable livenessProbe
+## @param livenessProbe.initialDelaySeconds Initial delay seconds for livenessProbe
+## @param livenessProbe.periodSeconds Period seconds for livenessProbe
+## @param livenessProbe.timeoutSeconds Timeout seconds for livenessProbe
+## @param livenessProbe.failureThreshold Failure threshold for livenessProbe
+## @param livenessProbe.successThreshold Success threshold for livenessProbe
+##
+livenessProbe:
+  enabled: true
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+  successThreshold: 1
+
+## @param readinessProbe.enabled Enable readinessProbe
+## @param readinessProbe.initialDelaySeconds Initial delay seconds for readinessProbe
+## @param readinessProbe.periodSeconds Period seconds for readinessProbe
+## @param readinessProbe.timeoutSeconds Timeout seconds for readinessProbe
+## @param readinessProbe.failureThreshold Failure threshold for readinessProbe
+## @param readinessProbe.successThreshold Success threshold for readinessProbe
+##
+readinessProbe:
+  enabled: true
+  initialDelaySeconds: 5
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 3
+  successThreshold: 1
+
+## @section RBAC Parameters
+##
+
+## @param serviceAccount.create Specifies whether a ServiceAccount should be created
+## @param serviceAccount.name The name of the ServiceAccount to use.
+## @param serviceAccount.annotations Additional Service Account annotations (evaluated as a template)
+## @param serviceAccount.automountServiceAccountToken Automount service account token for the server service account
+##
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+  automountServiceAccountToken: true
+
+## @param rbac.create Specifies whether RBAC resources should be created
+##
+rbac:
+  create: true
+
+## @section Other Parameters
+##
+
+## @param nodeSelector Node labels for pod assignment
+## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/
+##
+nodeSelector: {}
+
+## @param tolerations Tolerations for pod assignment
+## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+##
+tolerations: []
+
+## @param affinity Affinity for pod assignment
+## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+##
+affinity: {}
+
+## @param podAnnotations Annotations for Admission controller pods
+## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
+##
+podAnnotations: {}
+
+## @param podLabels Extra labels for Admission controller pods
+## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
+##
+podLabels: {}
+
+## @param priorityClassName Admission controller pods' priorityClassName
+##
+priorityClassName: ""
+
+## @param hostAliases Add custom host-to-IP mappings to /etc/hosts for custom DNS resolution
+## ref: https://kubernetes.io/docs/tasks/network/customize-hosts-file-for-pods/
+## Example:
+## hostAliases:
+##   - ip: "192.168.x.x"
+##     hostnames:
+##       - "git.example.com"
+##       - "git.example.com"
+##   - ip: "10.x.x.x"
+##     hostnames:
+##       - "internal-registry.local"
+##
+hostAliases: []

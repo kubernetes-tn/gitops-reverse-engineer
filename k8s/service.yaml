@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: gitops-reverse-engineer
+  namespace: gitops-reverse-engineer-system
+  labels:
+    app: gitops-reverse-engineer
+spec:
+  ports:
+  - port: 443
+    targetPort: 8443
+    protocol: TCP
+    name: webhook
+  selector:
+    app: gitops-reverse-engineer
+  type: ClusterIP

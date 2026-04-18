@@ -1,0 +1,55 @@
+# Compiled binaries
+admission-controller
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Go test files
+*.test
+*.out
+coverage.html
+
+# Go dependency directories
+vendor/
+
+# Docker
+*.tar
+
+# Kubernetes generated files
+k8s/webhook-configured.yaml
+
+# Certificates (exclude generated certs but keep Helm values override)
+*.key
+*.crt
+*.csr
+*.pem
+*.der
+*.srl
+values-certs-override.yaml
+k8s/secret.yaml
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+tmp.*
+*.tmp.*
+
+# E2E runtime artifacts
+e2e/.env
+e2e/.portforward.pid
+
+# Environment files
+.env
+.env.*

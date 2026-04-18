@@ -1,0 +1,70 @@
+# Production cluster-specific values
+# This file demonstrates a production deployment configuration
+# Usage: make deploy CLUSTER_NAME=production TAG=v1.0.0
+
+## Production Git repository configuration
+git:
+  repoUrl: "https://git.example.com/sre/cluster-git-reversed.git"
+  existingSecret: "git-token"
+  clusterName: "production"
+
+## Production namespace filtering
+watch:
+  clusterWideResources: true
+  namespaces:
+    include: []
+    exclude: []
+    excludePattern:
+      - "kube-*"
+    labelSelector: {}
+
+  ## Production-specific user exclusions
+  excludeUsers:
+    # Exclude system controllers
+    - "system:serviceaccount:kube-system:generic-garbage-collector"
+    - "system:serviceaccount:kube-system:persistent-volume-binder"
+    # Exclude GitOps controllers to prevent recursive changes
+    - "system:serviceaccount:argocd:argocd-application-controller"
+    - "system:serviceaccount:flux-system:flux-controller"
+
+## Production resource allocation (higher limits for production)
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 200m
+    memory: 512Mi
+
+## Production monitoring
+metrics:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+    interval: 30s
+    scrapeTimeout: 10s
+
+prometheusRule:
+  enabled: true
+  groups:
+    - name: gitops-reverse-engineer-production
+      rules:
+        - alert: GitOpsAdmissionGitSyncFailure
+          expr: gitops_admission_git_sync_failures_total > 0
+          for: 2m
+          labels:
+            severity: critical
+            environment: production
+          annotations:
+            summary: "GitOps Admission Controller failing to sync to Git (Production)"
+            description: "The GitOps Admission Controller on production cluster has failed to sync resources to Git repository. Pending operations: {{ $value }}"
+
+## Production deployment (HA with 2 replicas)
+replicaCount: 2
+
+## Production host aliases for internal DNS resolution
+# Uncomment and configure if your Git server requires custom DNS
+# hostAliases:
+#   - ip: "10.x.x.x"
+#     hostnames:
+#       - "git.example.com"

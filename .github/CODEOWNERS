@@ -1,0 +1,11 @@
+# Default owners for the entire repository
+* @abdennour
+
+# Helm chart
+/chart/ @abdennour
+
+# CI/CD workflows
+/.github/workflows/ @abdennour
+
+# E2E tests
+/e2e/ @abdennour

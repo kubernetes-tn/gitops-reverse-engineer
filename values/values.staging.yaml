@@ -1,0 +1,62 @@
+# Staging cluster-specific values
+# This file demonstrates per-cluster configuration overrides
+# Usage: make deploy CLUSTER_NAME=staging
+
+## Staging-specific Git repository
+git:
+  repoUrl: "https://gitea.staging.example.com/sre/cluster-git-reversed.git"
+  existingSecret: "git-token-staging"
+  clusterName: "staging"
+
+## Staging namespace filtering
+watch:
+  clusterWideResources: true
+  namespaces:
+    include: []
+    exclude:
+      - "kube-system"
+      - "kube-public"
+    excludePattern:
+      - "kube-*"
+      - "*-dev"
+    labelSelector:
+      environment: "staging"
+
+## Staging resource limits (moderate)
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 256Mi
+
+## Staging monitoring
+metrics:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+    interval: 60s
+
+prometheusRule:
+  enabled: true
+  groups:
+    - name: gitops-reverse-engineer-staging
+      rules:
+        - alert: GitOpsAdmissionGitSyncFailure
+          expr: gitops_admission_git_sync_failures_total > 0
+          for: 5m
+          labels:
+            severity: warning
+            environment: staging
+          annotations:
+            summary: "GitOps Admission Controller failing to sync to Git (Staging)"
+
+## Staging - single replica is sufficient
+replicaCount: 1
+
+## Staging host aliases (example for internal DNS)
+# hostAliases:
+#   - ip: "10.x.x.x"
+#     hostnames:
+#       - "git.staging.internal"

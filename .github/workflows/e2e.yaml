@@ -1,0 +1,58 @@
+name: E2E Tests
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Install Kind
+        run: go install sigs.k8s.io/kind@latest
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+
+      - name: Set up e2e environment
+        run: make e2e-setup
+
+      - name: Run e2e tests
+        run: make e2e-test
+
+      - name: Collect logs on failure
+        if: failure()
+        run: |
+          echo "=== Webhook pod descriptions ==="
+          kubectl describe pods -n gitops-reverse-engineer-system -l app.kubernetes.io/name=gitops-reverse-engineer || true
+          echo ""
+          echo "=== Webhook controller logs ==="
+          kubectl logs -n gitops-reverse-engineer-system -l app.kubernetes.io/name=gitops-reverse-engineer --tail=100 || true
+          echo ""
+          echo "=== Gitea logs ==="
+          kubectl logs -n gitea -l app=gitea --tail=50 || true
+          echo ""
+          echo "=== Events in test namespace ==="
+          kubectl get events -n e2e-test-ns --sort-by='.lastTimestamp' || true
+
+      - name: Teardown
+        if: always()
+        run: make e2e-teardown

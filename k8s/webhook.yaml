@@ -1,0 +1,35 @@
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: gitops-reverse-engineer-webhook
+webhooks:
+  - name: validate.gitops-reverse-engineer.com
+    clientConfig:
+      service:
+        name: gitops-reverse-engineer
+        namespace: gitops-reverse-engineer-system
+        path: "/validate"
+      caBundle: CA_BUNDLE_PLACEHOLDER
+    rules:
+      - operations: ["CREATE", "UPDATE", "DELETE"]
+        apiGroups: [""]
+        apiVersions: ["v1"]
+        resources: ["configmaps", "secrets", "pods", "services"]
+      - operations: ["CREATE", "UPDATE", "DELETE"]
+        apiGroups: ["apps"]
+        apiVersions: ["v1"]
+        resources: ["deployments", "statefulsets", "daemonsets", "replicasets"]
+      - operations: ["CREATE", "UPDATE", "DELETE"]
+        apiGroups: ["batch"]
+        apiVersions: ["v1"]
+        resources: ["jobs", "cronjobs"]
+    admissionReviewVersions: ["v1", "v1beta1"]
+    sideEffects: None
+    timeoutSeconds: 10
+    failurePolicy: Ignore
+    namespaceSelector:
+      matchExpressions:
+      - key: gitops-reverse-engineer/enabled
+        operator: In
+        values:
+        - "true"
