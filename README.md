@@ -6,9 +6,9 @@
   <a href="https://github.com/kubernetes-tn/gitops-reverse-engineer/stargazers"><img src="https://img.shields.io/github/stars/kubernetes-tn/gitops-reverse-engineer?style=flat-square" alt="Stars"></a>
   <a href="https://github.com/kubernetes-tn/gitops-reverse-engineer/commits/main"><img src="https://img.shields.io/github/last-commit/kubernetes-tn/gitops-reverse-engineer?style=flat-square" alt="Last Commit"></a>
   <a href="https://github.com/kubernetes-tn/gitops-reverse-engineer/issues"><img src="https://img.shields.io/github/issues/kubernetes-tn/gitops-reverse-engineer?style=flat-square" alt="Issues"></a>
-  <a href="https://github.com/kubernetes-tn/gitops-reverse-engineer/blob/main/LICENSE"><img src="https://img.shields.io/github/license/kubernetes-tn/gitops-reverse-engineer?style=flat-square" alt="License"></a>
+  <a href="https://github.com/kubernetes-tn/gitops-reverse-engineer/blob/main/LICENSE"><img src="https://img.shields.io/github/license/kubernetes-tn/gitops-reverse-engineer?style=flat-square&refresh=322ss" alt="License"></a>
   <a href="https://github.com/kubernetes-tn/gitops-reverse-engineer/actions/workflows/build.yaml"><img src="https://img.shields.io/github/actions/workflow/status/kubernetes-tn/gitops-reverse-engineer/build.yaml?style=flat-square&label=build" alt="Build"></a>
-  <a href="https://goreportcard.com/report/github.com/kubernetes-tn/gitops-reverse-engineer"><img src="https://goreportcard.com/badge/github.com/kubernetes-tn/gitops-reverse-engineer" alt="Go Report Card"></a>
+  <a href="https://goreportcard.com/report/github.com/kubernetes-tn/gitops-reverse-engineer"><img src="https://goreportcard.com/badge/github.com/kubernetes-tn/gitops-reverse-engineer&refresh=7udid" alt="Go Report Card"></a>
 </p>
 
 # GitOps Reverse Engineer
